@@ -1,0 +1,41 @@
+[
+  {
+    "id": "1774361202112",
+    "customerName": "Cauet Remigio",
+    "customerPhone": "82996051818",
+    "productId": "p1774360343002",
+    "productName": "Camisa Adidas Alemanha",
+    "quantity": 1,
+    "paymentMethod": "PIX",
+    "totalValue": 120,
+    "saleDate": "2026-03-24",
+    "isFromStock": true,
+    "isPaid": true
+  },
+  {
+    "id": "1774361667470",
+    "customerName": "Gabriel Ferreira",
+    "customerPhone": "82832894328",
+    "productId": "p1774360343002",
+    "productName": "Camisa Adidas Alemanha",
+    "quantity": 1,
+    "paymentMethod": "PIX",
+    "totalValue": 120,
+    "saleDate": "2026-03-24",
+    "isFromStock": false,
+    "isPaid": false
+  },
+  {
+    "id": "1774363237117",
+    "customerName": "Cauet",
+    "customerPhone": "82996051818",
+    "productId": "p1774360343002",
+    "productName": "Camisa Adidas Alemanha",
+    "quantity": 3,
+    "paymentMethod": "PIX",
+    "totalValue": 360,
+    "saleDate": "2026-03-24",
+    "isFromStock": false,
+    "isPaid": true
+  }
+]
