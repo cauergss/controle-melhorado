@@ -1,0 +1,4 @@
+[
+  {"id":"c1","name":"Cliente A","phone":"123456789","items":[{"productId":"p1","quantity":2}]},
+  {"id":"c2","name":"Cliente B","phone":"987654321","items":[]} 
+]
