@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
     await writeData("users", users);
 
     return NextResponse.json(newUser, { status: 201 });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Erro ao criar usuário" }, { status: 500 });
   }
 }
@@ -102,7 +102,7 @@ export async function PUT(req: NextRequest) {
     await writeData("users", users);
 
     return NextResponse.json(users[userIndex]);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Erro ao atualizar usuário" }, { status: 500 });
   }
 }
@@ -139,7 +139,7 @@ export async function DELETE(req: NextRequest) {
     await writeData("users", filteredUsers);
 
     return NextResponse.json({ message: "Usuário deletado com sucesso" });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Erro ao deletar usuário" }, { status: 500 });
   }
 }

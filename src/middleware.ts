@@ -4,7 +4,7 @@ export function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
   
   // Rotas que não precisam de autenticação
-  const publicRoutes = ["/login", "/"];
+  const publicRoutes = ["/login", "/", "/vitrine"];
   
   // Rotas que precisam de autenticação
   const protectedRoutes = ["/dashboard", "/clientes", "/estoque"];
@@ -12,7 +12,7 @@ export function middleware(req: NextRequest) {
   // Rotas que precisam de autenticação com role admin
   const adminRoutes = ["/admin"];
 
-  const isPublicRoute = publicRoutes.includes(pathname);
+  const isPublicRoute = publicRoutes.some((route) => pathname === route || pathname.startsWith(route + "/"));
   const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route));
   const isAdminRoute = adminRoutes.some((route) => pathname.startsWith(route));
 
@@ -31,7 +31,7 @@ export function middleware(req: NextRequest) {
       if (user.role !== "admin") {
         return NextResponse.redirect(new URL("/dashboard", req.url));
       }
-    } catch (error) {
+    } catch {
       return NextResponse.redirect(new URL("/login", req.url));
     }
   }

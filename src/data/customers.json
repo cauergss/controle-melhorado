@@ -1,0 +1,30 @@
+[
+  {
+    "id": "c1",
+    "name": "João Silva",
+    "phone": "11999999999",
+    "items": [
+      {
+        "productId": "p1774360343002",
+        "quantity": 2
+      }
+    ]
+  },
+  {
+    "id": "c2",
+    "name": "Maria Santos",
+    "phone": "11988888888",
+    "items": [
+      {
+        "productId": "p1774360343002",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "c3",
+    "name": "Pedro Oliveira",
+    "phone": "11977777777",
+    "items": []
+  }
+]

@@ -37,5 +37,18 @@
     "saleDate": "2026-03-24",
     "isFromStock": false,
     "isPaid": true
+  },
+  {
+    "id": "1775414349514",
+    "customerName": "joao",
+    "customerPhone": "314243643",
+    "productId": "p1774443182989",
+    "productName": "teste2",
+    "quantity": 1,
+    "paymentMethod": "PIX",
+    "totalValue": 123,
+    "saleDate": "2026-04-05",
+    "isFromStock": true,
+    "isPaid": true
   }
 ]

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
+  XAxis, YAxis, Tooltip, CartesianGrid,
   ResponsiveContainer, LineChart, Line, Legend
 } from "recharts";
 
@@ -20,6 +20,16 @@ type Sale = {
   saleDate: string;
   isFromStock: boolean;
   isPaid: boolean;
+};
+
+type Product = {
+  id: string;
+  name: string;
+  quantity: number;
+  cost: number;
+  salePrice: number;
+  image: string;
+  inShowcase: boolean;
 };
 
 function StatCard({
@@ -77,12 +87,18 @@ function SaleItem({ sale }: { sale: Sale }) {
   );
 }
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+interface TooltipProps {
+  active?: boolean;
+  payload?: Array<{ name: string; value: number; color: string }>;
+  label?: string;
+}
+
+const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
   if (!active || !payload?.length) return null;
   return (
     <div className="card" style={{ padding: "0.75rem 1rem", minWidth: 160 }}>
       <p className="text-xs font-semibold mb-2" style={{ color: "var(--text-muted)" }}>{label}</p>
-      {payload.map((p: any) => (
+      {payload.map((p) => (
         <p key={p.name} className="text-sm font-medium" style={{ color: p.color }}>
           {p.name === "valor" ? `R$ ${Number(p.value).toFixed(2)}` : `${p.value} vendas`}
         </p>
@@ -94,19 +110,30 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 export default function DashboardPage() {
   const [user, setUser] = useState<{ name: string; role?: string } | null>(null);
   const [sales, setSales] = useState<Sale[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
     async function fetchData() {
-      const res = await fetch("/api/auth/me");
-      if (!res.ok) return router.push("/login");
-      const data = await res.json();
-      setUser(data.user);
-      const salesRes = await fetch("/api/sales");
-      const salesData = await salesRes.json();
-      setSales(salesData);
-      setLoading(false);
+      try {
+        const res = await fetch("/api/auth/me");
+        if (!res.ok) return router.push("/login");
+        const data = await res.json();
+        setUser(data.user);
+        const [salesRes, stockRes] = await Promise.all([
+          fetch("/api/sales"),
+          fetch("/api/stock"),
+        ]);
+        const salesData = await salesRes.json();
+        const stockData = await stockRes.json();
+        setSales(Array.isArray(salesData) ? salesData : []);
+        setProducts(stockData.products ?? []);
+      } catch (err) {
+        console.error("Erro ao carregar dados:", err);
+      } finally {
+        setLoading(false);
+      }
     }
     fetchData();
   }, [router]);
@@ -114,12 +141,18 @@ export default function DashboardPage() {
   const totalRevenue  = useMemo(() => sales.reduce((s, x) => s + x.totalValue, 0), [sales]);
   const paidRevenue   = useMemo(() => sales.filter(s => s.isPaid).reduce((s, x) => s + x.totalValue, 0), [sales]);
   const unpaidRevenue = useMemo(() => sales.filter(s => !s.isPaid).reduce((s, x) => s + x.totalValue, 0), [sales]);
-  const salesToday    = useMemo(() => {
-    const today = new Date().toISOString().split("T")[0];
-    return sales.filter(s => s.saleDate === today).length;
-  }, [sales]);
   const paidSales   = useMemo(() => sales.filter(s => s.isPaid), [sales]);
   const unpaidSales = useMemo(() => sales.filter(s => !s.isPaid), [sales]);
+  
+  // Calcular lucro esperado do estoque
+  const expectedProfit = useMemo(() => {
+    return products.reduce((sum, p) => sum + p.quantity * ((p.salePrice ?? p.cost ?? 0) - p.cost), 0);
+  }, [products]);
+  
+  // Calcular custo total do estoque
+  const totalStockCost = useMemo(() => {
+    return products.reduce((sum, p) => sum + p.quantity * p.cost, 0);
+  }, [products]);
 
   const dailySalesData = useMemo(() => {
     const grouped: Record<string, { total: number; count: number }> = {};
@@ -171,7 +204,42 @@ export default function DashboardPage() {
           <StatCard label="Receita Total"   value={`R$ ${totalRevenue.toFixed(2)}`}  delay={0} />
           <StatCard label="Recebido"        value={`R$ ${paidRevenue.toFixed(2)}`}   delay={60}  accent="var(--success)" />
           <StatCard label="A Receber"       value={`R$ ${unpaidRevenue.toFixed(2)}`} delay={120} accent="var(--danger)" />
-          <StatCard label="Vendas Hoje"     value={String(salesToday)}               delay={180} accent="var(--accent)" />
+          <StatCard label="Lucro Possível"  value={`R$ ${expectedProfit.toFixed(2)}`} delay={180} accent="var(--accent)" />
+        </section>
+
+        {/* Stock and Profit cards */}
+        <section className="grid gap-3 sm:gap-4 grid-cols-1 md:grid-cols-2 stagger mb-6">
+          <div className="card animate-fade-up p-5" style={{ animationDelay: "240ms" }}>
+            <h3 className="font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Estoque Atual</h3>
+            <div className="flex items-end gap-4">
+              <div>
+                <p className="text-xs mb-2" style={{ color: "var(--text-muted)" }}>Valor investido</p>
+                <p className="text-2xl font-bold" style={{ color: "var(--success)" }}>R$ {totalStockCost.toFixed(2)}</p>
+              </div>
+              <div>
+                <p className="text-xs mb-2" style={{ color: "var(--text-muted)" }}>Lucro esperado</p>
+                <p className="text-2xl font-bold" style={{ color: "var(--accent)" }}>R$ {expectedProfit.toFixed(2)}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="card animate-fade-up p-5" style={{ animationDelay: "300ms" }}>
+            <h3 className="font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Margem de Lucro</h3>
+            <div className="flex items-end gap-4">
+              <div>
+                <p className="text-xs mb-2" style={{ color: "var(--text-muted)" }}>% esperado</p>
+                <p className="text-2xl font-bold" style={{ color: "var(--accent)" }}>
+                  {totalStockCost > 0 ? ((expectedProfit / totalStockCost) * 100).toFixed(1) : "0"}%
+                </p>
+              </div>
+              <div>
+                <p className="text-xs mb-2" style={{ color: "var(--text-muted)" }}>Produtos na vitrine</p>
+                <p className="text-2xl font-bold" style={{ color: "var(--accent)" }}>
+                  {products.filter(p => p.inShowcase).length}
+                </p>
+              </div>
+            </div>
+          </div>
         </section>
 
         {/* Chart */}

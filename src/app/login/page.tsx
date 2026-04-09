@@ -11,7 +11,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  // Carregar credenciais salvas ao montar o componente
+  // Carrega credenciais salvas apenas no cliente após hidratação
   useEffect(() => {
     const savedCredentials = localStorage.getItem("rememberMe_credentials");
     if (savedCredentials) {
@@ -20,8 +20,7 @@ export default function LoginPage() {
         setEmail(savedEmail);
         setPassword(savedPassword);
         setRememberMe(true);
-      } catch (err) {
-        console.error("Erro ao carregar credenciais salvas:", err);
+      } catch {
         localStorage.removeItem("rememberMe_credentials");
       }
     }
@@ -49,7 +48,7 @@ export default function LoginPage() {
         // Senão, remover qualquer credencial salva
         localStorage.removeItem("rememberMe_credentials");
       }
-      
+      setLoading(false);
       router.push("/dashboard");
     } else {
       const data = await res.json();

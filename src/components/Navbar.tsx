@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useState } from "react";
 
-export default function Navbar({ user }: { user?: { name: string; role?: string } }) {
+export default function Navbar({ user, isVitrine = false }: { user?: { name: string; role?: string }; isVitrine?: boolean }) {
   const router = useRouter();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -41,37 +41,57 @@ export default function Navbar({ user }: { user?: { name: string; role?: string 
         {/* Desktop */}
         <div className="hidden md:flex items-center justify-between">
           <div className="flex items-center gap-8">
-            <Link
-              href="/dashboard"
-              className="flex items-center gap-2 font-bold text-base"
-              style={{ color: "var(--text-primary)", textDecoration: "none" }}
-            >
-              <span
-                style={{
-                  background: "var(--accent)",
-                  color: "#fff",
-                  borderRadius: "6px",
-                  padding: "2px 8px",
-                  fontSize: "0.8rem",
-                  letterSpacing: "0.02em",
-                }}
-              >
-                CTRL
-              </span>
-              <span>Controle</span>
-            </Link>
-            <nav className="flex items-center gap-6">
-              {links.map((l) => (
-                <Link
-                  key={l.href}
-                  href={l.href}
-                  className={`nav-link ${pathname === l.href ? "active" : ""}`}
-                  style={l.href === "/admin" ? { color: "var(--accent)" } : {}}
+            {isVitrine ? (
+              <div className="flex items-center gap-2 font-bold text-base" style={{ color: "var(--text-primary)" }}>
+                <span
+                  style={{
+                    background: "var(--accent)",
+                    color: "#fff",
+                    borderRadius: "6px",
+                    padding: "2px 8px",
+                    fontSize: "0.8rem",
+                    letterSpacing: "0.02em",
+                  }}
                 >
-                  {l.label}
-                </Link>
-              ))}
-            </nav>
+                  MANTO
+                </span>
+                <span>Clube do Manto</span>
+              </div>
+            ) : (
+              <Link
+                href="/dashboard"
+                className="flex items-center gap-2 font-bold text-base"
+                style={{ color: "var(--text-primary)", textDecoration: "none" }}
+              >
+                <span
+                  style={{
+                    background: "var(--accent)",
+                    color: "#fff",
+                    borderRadius: "6px",
+                    padding: "2px 8px",
+                    fontSize: "0.8rem",
+                    letterSpacing: "0.02em",
+                  }}
+                >
+                  CTRL
+                </span>
+                <span>Controle</span>
+              </Link>
+            )}
+            {!isVitrine && (
+              <nav className="flex items-center gap-6">
+                {links.map((l) => (
+                  <Link
+                    key={l.href}
+                    href={l.href}
+                    className={`nav-link ${pathname === l.href ? "active" : ""}`}
+                    style={l.href === "/admin" ? { color: "var(--accent)" } : {}}
+                  >
+                    {l.label}
+                  </Link>
+                ))}
+              </nav>
+            )}
           </div>
           <div className="flex items-center gap-3">
             <div
@@ -107,19 +127,35 @@ export default function Navbar({ user }: { user?: { name: string; role?: string 
 
         {/* Mobile */}
         <div className="md:hidden flex items-center justify-between">
-          <Link href="/dashboard" className="font-bold text-base" style={{ color: "var(--text-primary)", textDecoration: "none" }}>
-            <span
-              style={{
-                background: "var(--accent)",
-                color: "#fff",
-                borderRadius: "6px",
-                padding: "2px 8px",
-                fontSize: "0.8rem",
-              }}
-            >
-              CTRL
-            </span>
-          </Link>
+          {isVitrine ? (
+            <div className="font-bold text-base" style={{ color: "var(--text-primary)" }}>
+              <span
+                style={{
+                  background: "var(--accent)",
+                  color: "#fff",
+                  borderRadius: "6px",
+                  padding: "2px 8px",
+                  fontSize: "0.8rem",
+                }}
+              >
+                MANTO
+              </span>
+            </div>
+          ) : (
+            <Link href="/dashboard" className="font-bold text-base" style={{ color: "var(--text-primary)", textDecoration: "none" }}>
+              <span
+                style={{
+                  background: "var(--accent)",
+                  color: "#fff",
+                  borderRadius: "6px",
+                  padding: "2px 8px",
+                  fontSize: "0.8rem",
+                }}
+              >
+                CTRL
+              </span>
+            </Link>
+          )}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
             className="btn btn-secondary btn-sm"
@@ -144,44 +180,46 @@ export default function Navbar({ user }: { user?: { name: string; role?: string 
         </div>
 
         {/* Mobile Menu */}
-        <div
-          style={{
-            overflow: "hidden",
-            maxHeight: mobileOpen ? "400px" : "0",
-            transition: "max-height 350ms cubic-bezier(0.4,0,0.2,1)",
-          }}
-          className="md:hidden"
-        >
-          <div style={{ paddingTop: "1rem", borderTop: "1px solid var(--border)", marginTop: "0.875rem" }}>
-            <nav className="flex flex-col gap-1">
-              {links.map((l) => (
-                <Link
-                  key={l.href}
-                  href={l.href}
-                  onClick={() => setMobileOpen(false)}
-                  className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium"
-                  style={{
-                    background: pathname === l.href ? "var(--accent-light)" : "transparent",
-                    color: pathname === l.href ? "var(--accent)" : "var(--text-primary)",
-                    textDecoration: "none",
-                    transition: "background var(--transition), color var(--transition)",
-                  }}
-                >
-                  {l.label}
-                </Link>
-              ))}
-            </nav>
-            <div
-              className="flex items-center justify-between mt-3 pt-3"
-              style={{ borderTop: "1px solid var(--border)" }}
-            >
-              <span style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>
-                {user?.name ?? "Visita"}
-              </span>
-              <button onClick={logout} className="btn btn-dark btn-sm">Sair</button>
+        {!isVitrine && (
+          <div
+            style={{
+              overflow: "hidden",
+              maxHeight: mobileOpen ? "400px" : "0",
+              transition: "max-height 350ms cubic-bezier(0.4,0,0.2,1)",
+            }}
+            className="md:hidden"
+          >
+            <div style={{ paddingTop: "1rem", borderTop: "1px solid var(--border)", marginTop: "0.875rem" }}>
+              <nav className="flex flex-col gap-1">
+                {links.map((l) => (
+                  <Link
+                    key={l.href}
+                    href={l.href}
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium"
+                    style={{
+                      background: pathname === l.href ? "var(--accent-light)" : "transparent",
+                      color: pathname === l.href ? "var(--accent)" : "var(--text-primary)",
+                      textDecoration: "none",
+                      transition: "background var(--transition), color var(--transition)",
+                    }}
+                  >
+                    {l.label}
+                  </Link>
+                ))}
+              </nav>
+              <div
+                className="flex items-center justify-between mt-3 pt-3"
+                style={{ borderTop: "1px solid var(--border)" }}
+              >
+                <span style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>
+                  {user?.name ?? "Visita"}
+                </span>
+                <button onClick={logout} className="btn btn-dark btn-sm">Sair</button>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </header>
   );

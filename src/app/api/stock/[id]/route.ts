@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readData, writeData } from "@/lib/store";
 
-type Product = { id: string; name: string; quantity: number; cost: number; image: string };
+type Product = { id: string; name: string; quantity: number; cost: number; salePrice: number; image: string; inShowcase: boolean };
 
 export async function PUT(
   req: NextRequest,
@@ -10,7 +10,7 @@ export async function PUT(
   const { id } = await params;
   const body = await req.json();
 
-  if (!body.name || !body.quantity || !body.cost || !body.image) {
+  if (!body.name || body.quantity === undefined || body.quantity === null || !body.cost || !body.salePrice || !body.image) {
     return NextResponse.json({ error: "Campos inválidos" }, { status: 400 });
   }
 
@@ -26,7 +26,9 @@ export async function PUT(
     name: body.name,
     quantity: Number(body.quantity),
     cost: Number(body.cost),
+    salePrice: Number(body.salePrice),
     image: body.image,
+    inShowcase: body.inShowcase ?? false,
   };
 
   products[productIndex] = updatedProduct;

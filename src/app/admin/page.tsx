@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Navbar from "@/components/Navbar";
 import UserForm from "@/components/UserForm";
 
@@ -17,6 +17,17 @@ export default function AdminPage() {
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
+  const loadUsers = useCallback(async () => {
+    try {
+      const res = await fetch("/api/users");
+      if (res.ok) setUsers(await res.json());
+      setLoading(false);
+    } catch {
+      setError("Erro ao carregar usuários");
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     async function checkAuth() {
       const res = await fetch("/api/auth/me");
@@ -27,18 +38,7 @@ export default function AdminPage() {
       loadUsers();
     }
     checkAuth();
-  }, [router]);
-
-  async function loadUsers() {
-    try {
-      const res = await fetch("/api/users");
-      if (res.ok) setUsers(await res.json());
-      setLoading(false);
-    } catch {
-      setError("Erro ao carregar usuários");
-      setLoading(false);
-    }
-  }
+  }, [router, loadUsers]);
 
   async function handleDeleteUser(userId: string) {
     if (!confirm("Tem certeza que deseja deletar este usuário?")) return;

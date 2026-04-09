@@ -22,24 +22,22 @@ export default function ProtectedPageWrapper({
         const res = await fetch("/api/auth/me");
         
         if (!res.ok) {
-          router.push(fallbackRedirect);
-          setIsLoading(false);
+          router.replace(fallbackRedirect);
           return;
         }
 
         const data = await res.json();
         
         if (requiredRole === "admin" && data.user.role !== "admin") {
-          router.push("/dashboard");
-          setIsLoading(false);
+          router.replace("/dashboard");
           return;
         }
 
         setIsAuthorized(true);
-        setIsLoading(false);
       } catch (error) {
         console.error("Erro ao verificar autenticação:", error);
-        router.push(fallbackRedirect);
+        router.replace(fallbackRedirect);
+      } finally {
         setIsLoading(false);
       }
     }

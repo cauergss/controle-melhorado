@@ -4,8 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 
-type Customer = { id: string; name: string; phone: string; items: { productId: string; quantity: number }[] };
-type Product = { id: string; name: string; quantity: number; cost: number };
+type Product = { id: string; name: string; quantity: number; cost: number; salePrice: number; image: string; inShowcase: boolean };
 type Sale = {
   id: string; customerName: string; customerPhone: string;
   productId: string; productName: string; quantity: number;
@@ -23,7 +22,6 @@ function FormField({ label, children }: { label: string; children: React.ReactNo
 }
 
 export default function ClientesPage() {
-  const [customers, setCustomers] = useState<Customer[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [sales, setSales] = useState<Sale[]>([]);
   const [user, setUser] = useState<{ name: string; role?: string } | null>(null);
@@ -38,9 +36,13 @@ export default function ClientesPage() {
   const [selectedProduct, setSelectedProduct] = useState("");
   const [saleQuantity, setSaleQuantity] = useState(1);
   const [paymentMethod, setPaymentMethod] = useState("");
-  const [totalValue, setTotalValue] = useState(0);
-  const [saleDate, setSaleDate] = useState(new Date().toISOString().split("T")[0]);
+  const [saleDate, setSaleDate] = useState("");
   const [isPaid, setIsPaid] = useState(true);
+
+  // Inicializa saleDate apenas no cliente após hidratação
+  useEffect(() => {
+    setSaleDate(new Date().toISOString().split("T")[0]);
+  }, []);
 
   const selectedProductData = useMemo(
     () => products.find(p => p.id === selectedProduct),
@@ -48,6 +50,12 @@ export default function ClientesPage() {
   );
   const isProductInStock = useMemo(
     () => selectedProductData && selectedProductData.quantity >= saleQuantity,
+    [selectedProductData, saleQuantity]
+  );
+
+  // Calcula o total da venda quando o produto ou quantidade muda
+  const calculatedTotalValue = useMemo(
+    () => selectedProductData ? (selectedProductData.salePrice ?? selectedProductData.cost ?? 0) * saleQuantity : 0,
     [selectedProductData, saleQuantity]
   );
 
@@ -63,36 +71,38 @@ export default function ClientesPage() {
 
   useEffect(() => {
     async function fetchData() {
-      const res = await fetch("/api/auth/me");
-      if (!res.ok) return router.push("/login");
-      const data = await res.json();
-      setUser(data.user);
-      const [cRes, pRes, sRes] = await Promise.all([
-        fetch("/api/customers"),
-        fetch("/api/stock"),
-        fetch("/api/sales"),
-      ]);
-      const cs = await cRes.json(); const ps = await pRes.json(); const ss = await sRes.json();
-      setCustomers(cs); setProducts(ps.products ?? []); setSales(ss);
+      try {
+        const res = await fetch("/api/auth/me");
+        if (!res.ok) return router.push("/login");
+        const data = await res.json();
+        setUser(data.user);
+        const [, pRes, sRes] = await Promise.all([
+          fetch("/api/customers"),
+          fetch("/api/stock"),
+          fetch("/api/sales"),
+        ]);
+        const ps = await pRes.json();
+        const ss = await sRes.json();
+        setProducts(ps.products ?? []);
+        setSales(Array.isArray(ss) ? ss : []);
+      } catch (err) {
+        console.error("Erro ao carregar dados:", err);
+      }
     }
     fetchData();
   }, [router]);
 
-  useEffect(() => {
-    if (selectedProductData) setTotalValue(selectedProductData.cost * saleQuantity);
-  }, [selectedProductData, saleQuantity]);
-
   function openSaleModal() {
     setShowSaleModal(true);
     setCustomerName(""); setCustomerPhone(""); setSelectedProduct("");
-    setSaleQuantity(1); setPaymentMethod(""); setTotalValue(0);
+    setSaleQuantity(1); setPaymentMethod("");
     setSaleDate(new Date().toISOString().split("T")[0]);
     setIsPaid(true); setError("");
   }
 
   async function registerSale() {
     setError("");
-    if (!customerName || !customerPhone || !selectedProduct || !paymentMethod || totalValue <= 0) {
+    if (!customerName || !customerPhone || !selectedProduct || !paymentMethod || calculatedTotalValue <= 0) {
       setError("Todos os campos são obrigatórios.");
       return;
     }
@@ -104,7 +114,7 @@ export default function ClientesPage() {
     const saleData = {
       customerName, customerPhone, productId: selectedProduct,
       productName: product.name, quantity: saleQuantity,
-      paymentMethod, totalValue, saleDate, isFromStock, isPaid,
+      paymentMethod, totalValue: calculatedTotalValue, saleDate, isFromStock, isPaid,
     };
 
     const res = await fetch("/api/sales", {
@@ -257,7 +267,7 @@ export default function ClientesPage() {
                   <option value="">Selecione um produto</option>
                   {products.map(p => (
                     <option key={p.id} value={p.id}>
-                      {p.name} — R$ {p.cost.toFixed(2)} (Est: {p.quantity})
+                      {p.name} — R$ {(p.salePrice ?? p.cost ?? 0).toFixed(2)} (Est: {p.quantity})
                     </option>
                   ))}
                 </select>
@@ -290,7 +300,8 @@ export default function ClientesPage() {
               </div>
 
               <FormField label="Valor Total (R$)">
-                <input type="number" className="input" value={totalValue} onChange={e => setTotalValue(Number(e.target.value))} step="0.01" min="0" placeholder="0.00" />
+                <input type="number" className="input" value={calculatedTotalValue} step="0.01" min="0" placeholder="0.00" disabled style={{ opacity: 0.7, cursor: "not-allowed" }} />
+                <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>Calculado automaticamente: R$ {calculatedTotalValue.toFixed(2)}</p>
               </FormField>
 
               <label
