@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { DataInitializer } from "@/components/DataInitializer";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -24,7 +25,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-      <body className="min-h-screen bg-slate-50 text-slate-800">{children}</body>
+      <body className="min-h-screen bg-slate-50 text-slate-800">
+        <DataInitializer />
+        {children}
+      </body>
     </html>
   );
 }
