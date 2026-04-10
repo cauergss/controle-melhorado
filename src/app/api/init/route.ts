@@ -2,26 +2,26 @@ import { NextResponse } from "next/server";
 import { initializeDataFiles } from "@/lib/initializeData";
 
 /**
- * Rota para inicializar os arquivos JSON
- * GET /api/init - Verifica e cria arquivos se não existirem
+ * GET /api/init
+ * Verifica e cria os arquivos JSON caso não existam.
+ * Chamado automaticamente pelo DataInitializer no boot do cliente.
  */
 export async function GET() {
   try {
-    await initializeDataFiles();
+    const result = await initializeDataFiles();
     return NextResponse.json(
-      { 
-        success: true, 
-        message: "Arquivos de dados inicializados com sucesso" 
+      {
+        success: true,
+        message: "Arquivos de dados verificados com sucesso",
+        created: result.created,
+        existing: result.existing,
       },
       { status: 200 }
     );
   } catch (error) {
     console.error("Erro ao inicializar dados:", error);
     return NextResponse.json(
-      { 
-        success: false, 
-        error: "Erro ao inicializar arquivos de dados" 
-      },
+      { success: false, error: "Erro ao inicializar arquivos de dados" },
       { status: 500 }
     );
   }

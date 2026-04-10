@@ -1,43 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
+import { decodeSession } from "@/lib/auth";
 
 export function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
-  
-  // Rotas que não precisam de autenticação
+
   const publicRoutes = ["/login", "/", "/vitrine"];
-  
-  // Rotas que precisam de autenticação
   const protectedRoutes = ["/dashboard", "/clientes", "/estoque"];
-  
-  // Rotas que precisam de autenticação com role admin
   const adminRoutes = ["/admin"];
 
-  const isPublicRoute = publicRoutes.some((route) => pathname === route || pathname.startsWith(route + "/"));
-  const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route));
-  const isAdminRoute = adminRoutes.some((route) => pathname.startsWith(route));
+  const isPublicRoute = publicRoutes.some((r) => pathname === r || pathname.startsWith(r + "/"));
+  const isProtectedRoute = protectedRoutes.some((r) => pathname.startsWith(r));
+  const isAdminRoute = adminRoutes.some((r) => pathname.startsWith(r));
 
-  // Obter o cookie de autenticação
-  const authCookie = req.cookies.get("auth_user")?.value;
+  const token = req.cookies.get("auth_session")?.value;
+  const session = token ? decodeSession(token) : null;
 
-  // Se estiver tentando acessar rota protegida/admin sem autenticação
-  if ((isProtectedRoute || isAdminRoute) && !authCookie) {
+  // Rota protegida sem sessão válida → redireciona para login
+  if ((isProtectedRoute || isAdminRoute) && !session) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  // Se estiver autenticado, verificar permissões de admin
-  if (isAdminRoute && authCookie) {
-    try {
-      const user = JSON.parse(authCookie);
-      if (user.role !== "admin") {
-        return NextResponse.redirect(new URL("/dashboard", req.url));
-      }
-    } catch {
-      return NextResponse.redirect(new URL("/login", req.url));
+  // Rota admin: verifica role
+  if (isAdminRoute && session) {
+    if (session.role !== "admin") {
+      return NextResponse.redirect(new URL("/dashboard", req.url));
     }
   }
 
-  // Se estiver logado e tentar acessar /login, redirecionar para dashboard
-  if (isPublicRoute && pathname === "/login" && authCookie) {
+  // Já autenticado tentando acessar /login → vai para dashboard
+  if (pathname === "/login" && session) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
@@ -45,7 +36,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|public).*)",
-  ],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|public).*)"],
 };

@@ -1,66 +1,79 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Controle Melhorado
 
-## Getting Started
+Sistema de controle de estoque, clientes e vendas. Construído com **Next.js 16**, **TypeScript** e **Tailwind CSS**.
 
-### Prerequisites
-- Node.js (v18 or higher)
-- npm, yarn, pnpm, or bun
+---
 
-### Installation
+## 🚀 Instalação (qualquer máquina)
 
-1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd <project-name>
-```
+# 1. Clone ou extraia o projeto
+git clone <repositório> && cd controle-melhorado
 
-2. Install dependencies:
-```bash
+# 2. Instale as dependências
 npm install
-# or
-yarn install
-# or
-pnpm install
-# or
-bun install
-```
 
-3. Set up environment variables (if needed):
-```bash
-cp .env.example .env.local
-```
+# 3. Configure as variáveis de ambiente
+cp .env.local.example .env.local
+# Edite .env.local e preencha AUTH_SECRET com uma chave aleatória:
+# node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
-### Running the Development Server
-
-First, run the development server:
-
-```bash
+# 4. Execute em modo de desenvolvimento
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+> Os arquivos `src/data/*.json` são criados **automaticamente** na primeira inicialização, caso não existam. Nenhuma configuração extra de banco de dados é necessária.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🔐 Segurança
 
-## Learn More
+### Variável `AUTH_SECRET`
+Usada para assinar os tokens de sessão com HMAC-SHA256. **Nunca** use o valor padrão em produção. Gere uma chave segura:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Senhas
+- Armazenadas com **PBKDF2** (100.000 iterações, salt aleatório)
+- Senhas em texto plano existentes são migradas automaticamente no primeiro login
+- O campo `password` **nunca** é retornado pelas rotas de API
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Sessão
+- Cookie `auth_session` assinado com HMAC — não pode ser forjado
+- Expira em **8 horas**
+- Flags: `httpOnly`, `sameSite=lax`, `secure=true` em produção
 
-## Deploy on Vercel
+### Rate Limiting
+- Máximo de **10 tentativas de login** por IP em 15 minutos
+- Bloqueio de **30 minutos** após exceder o limite
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📁 Estrutura de Dados
+
+Os arquivos abaixo são criados automaticamente em `src/data/` se não existirem:
+
+| Arquivo | Descrição |
+|---|---|
+| `users.json` | Usuários do sistema (com senhas hasheadas) |
+| `products.json` | Produtos do estoque |
+| `customers.json` | Clientes |
+| `sales.json` | Registro de vendas |
+
+---
+
+## 🖥️ Scripts
+
+| Comando | Descrição |
+|---|---|
+| `npm run dev` | Servidor de desenvolvimento (acessível na rede local) |
+| `npm run build` | Build de produção |
+| `npm run start` | Servidor de produção |
+
+---
+
+## 📡 Acesso em Rede Local
+
+O servidor já está configurado para ouvir em `0.0.0.0`, tornando-o acessível por outros dispositivos na rede. Descubra seu IP local e acesse `http://<SEU_IP>:3000` de qualquer dispositivo na mesma rede.

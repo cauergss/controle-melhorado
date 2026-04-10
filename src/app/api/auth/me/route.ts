@@ -1,13 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
+import { verifySession } from "@/lib/auth.server";
 
 export async function GET(req: NextRequest) {
-  const cookie = req.cookies.get("auth_user")?.value;
-  if (!cookie) return NextResponse.json({ authenticated: false }, { status: 401 });
+  const token = req.cookies.get("auth_session")?.value;
+  if (!token) return NextResponse.json({ authenticated: false }, { status: 401 });
 
-  try {
-    const user = JSON.parse(cookie);
-    return NextResponse.json({ authenticated: true, user: { ...user, role: user.role || "user" } });
-  } catch {
-    return NextResponse.json({ authenticated: false }, { status: 401 });
-  }
+  const session = verifySession(token);
+  if (!session) return NextResponse.json({ authenticated: false }, { status: 401 });
+
+  return NextResponse.json({
+    authenticated: true,
+    user: {
+      id: session.id,
+      email: session.email,
+      name: session.name,
+      role: session.role ?? "user",
+    },
+  });
 }

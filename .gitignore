@@ -52,3 +52,14 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+
+# Variáveis de ambiente locais
+.env.local
+.env.*.local
+
+# Dados locais gerados em runtime — não commitar dados reais de produção
+# Remova as linhas abaixo se quiser versionar os JSONs de seed/exemplo
+src/data/users.json
+src/data/sales.json
+src/data/customers.json
+src/data/products.json

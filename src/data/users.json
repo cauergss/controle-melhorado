@@ -3,7 +3,7 @@
     "id": "u1",
     "name": "Cauet",
     "email": "cauetremigio34@gmail.com",
-    "password": "1234",
+    "password": "pbkdf2$100000$8da9a8d2ba05eb2442363906ebf2f1f1$671119463b3ab8bada6baf58c30a20fd2617fc59d68771b0d2ba491ea5757032",
     "role": "admin"
   }
 ]
