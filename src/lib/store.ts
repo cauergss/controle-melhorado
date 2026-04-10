@@ -8,18 +8,6 @@ const dataFile = (type: DataType) =>
   path.join(process.cwd(), "src", "data", `${type}.json`);
 
 export async function readData<T>(type: DataType): Promise<T[]> {
-<<<<<<< HEAD
-  const file = dataFile(type);
-  try {
-    const content = await readFile(file, "utf8");
-    return JSON.parse(content) as T[];
-  } catch (err: unknown) {
-    // Se o arquivo não existe, retorna array vazio em vez de lançar erro
-    if (typeof err === "object" && err !== null && "code" in err && (err as NodeJS.ErrnoException).code === "ENOENT") {
-      return [];
-    }
-    throw err;
-=======
   try {
     // Garantir que o arquivo existe antes de tentar ler
     await ensureDataFileExists(type);
@@ -27,10 +15,13 @@ export async function readData<T>(type: DataType): Promise<T[]> {
     const file = dataFile(type);
     const content = await readFile(file, "utf8");
     return JSON.parse(content) as T[];
-  } catch (error) {
-    console.error(`Erro ao ler dados de ${type}:`, error);
-    throw error;
->>>>>>> c62cf76f8d4077df9d1033d9117a1b7a2f0e39f6
+  } catch (err: unknown) {
+    // Se o arquivo não existe, retorna array vazio em vez de lançar erro
+    if (typeof err === "object" && err !== null && "code" in err && (err as NodeJS.ErrnoException).code === "ENOENT") {
+      return [];
+    }
+    console.error(`Erro ao ler dados de ${type}:`, err);
+    throw err;
   }
 }
 

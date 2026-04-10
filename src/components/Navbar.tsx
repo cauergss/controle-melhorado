@@ -93,36 +93,38 @@ export default function Navbar({ user, isVitrine = false }: { user?: { name: str
               </nav>
             )}
           </div>
-          <div className="flex items-center gap-3">
-            <div
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg"
-              style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
-            >
+          {!isVitrine && (
+            <div className="flex items-center gap-3">
               <div
-                style={{
-                  width: 28, height: 28,
-                  borderRadius: "50%",
-                  background: "var(--accent-light)",
-                  color: "var(--accent)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: "0.75rem", fontWeight: 700,
-                }}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg"
+                style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
               >
-                {user?.name?.[0]?.toUpperCase() ?? "V"}
+                <div
+                  style={{
+                    width: 28, height: 28,
+                    borderRadius: "50%",
+                    background: "var(--accent-light)",
+                    color: "var(--accent)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: "0.75rem", fontWeight: 700,
+                  }}
+                >
+                  {user?.name?.[0]?.toUpperCase() ?? "V"}
+                </div>
+                <span style={{ fontSize: "0.82rem", color: "var(--text-secondary)", fontWeight: 500 }}>
+                  {user?.name ?? "Visita"}
+                </span>
               </div>
-              <span style={{ fontSize: "0.82rem", color: "var(--text-secondary)", fontWeight: 500 }}>
-                {user?.name ?? "Visita"}
-              </span>
+              <button
+                onClick={logout}
+                disabled={loggingOut}
+                className="btn btn-dark btn-sm"
+              >
+                {loggingOut ? <span className="spinner" style={{ borderTopColor: "#fff", borderColor: "rgba(255,255,255,0.3)" }} /> : null}
+                Sair
+              </button>
             </div>
-            <button
-              onClick={logout}
-              disabled={loggingOut}
-              className="btn btn-dark btn-sm"
-            >
-              {loggingOut ? <span className="spinner" style={{ borderTopColor: "#fff", borderColor: "rgba(255,255,255,0.3)" }} /> : null}
-              Sair
-            </button>
-          </div>
+          )}
         </div>
 
         {/* Mobile */}

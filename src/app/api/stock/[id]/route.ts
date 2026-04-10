@@ -36,3 +36,23 @@ export async function PUT(
 
   return NextResponse.json(updatedProduct);
 }
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+
+  const products = await readData<Product>("products");
+  const productIndex = products.findIndex((p) => p.id === id);
+
+  if (productIndex === -1) {
+    return NextResponse.json({ error: "Produto não encontrado" }, { status: 404 });
+  }
+
+  const deletedProduct = products[productIndex];
+  products.splice(productIndex, 1);
+  await writeData("products", products);
+
+  return NextResponse.json({ message: "Produto deletado com sucesso", product: deletedProduct });
+}
